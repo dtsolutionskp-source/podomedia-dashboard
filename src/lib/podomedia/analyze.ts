@@ -1074,3 +1074,138 @@ export async function getSegmentMarketRanking(segmentId: string) {
   };
 }
 
+/** 엑셀 내보내기용 — 선택 상권 기준 세그먼트별 LS·RL·SA 등 (대시보드와 동일 로직) */
+export type DashboardExportRow = {
+  segmentId: string;
+  segmentName: string;
+  nSeg: number | null;
+  nMkt: number | null;
+  ls: number | null;
+  lsByMarket: Record<Market, number | null>;
+  gs: number | null;
+  liftRatio: number | null;
+  attentionScore: number | null;
+  rl: number | null;
+  sa: number | null;
+  segmentTotal: number | null;
+  scale: number | null;
+  adScore: number | null;
+};
+
+export type DashboardExportSnapshot = {
+  market: Market;
+  generatedAt: string;
+  baselineTotals: Record<Market, number>;
+  rows: DashboardExportRow[];
+};
+
+export async function getDashboardExportSnapshot(market: Market): Promise<DashboardExportSnapshot> {
+  noStore();
+  const segments = await listSegments();
+  const baselines = await Promise.all(MARKETS.map((m) => loadBaselineForMarket(m)));
+  const baselineByMarket = Object.fromEntries(baselines.map((b) => [b.market, b])) as Record<
+    Market,
+    BaselineRow
+  >;
+  const segmentMarketData = await Promise.all(
+    segments.flatMap((s) => MARKETS.map((m) => loadSegmentForMarket(s.segmentId, m))),
+  );
+  const bySegMarket = new Map<string, SegmentRow>();
+  for (const d of segmentMarketData) bySegMarket.set(`${d.segmentId}::${d.market}`, d);
+  const segmentTotals = await Promise.all(segments.map((s) => loadSegmentForMarket(s.segmentId, "전체")));
+  const totalBySegmentId = new Map(segmentTotals.map((x) => [x.segmentId, x] as const));
+
+  const rows: DashboardExportRow[] = segments.map((s) => {
+    const lsByMarket = Object.fromEntries(
+      MARKETS.map((m) => {
+        const b = baselineByMarket[m];
+        const d = bySegMarket.get(`${s.segmentId}::${m}`);
+        const p = d && b ? pickCompatibleBaselineSegment(b, d) : null;
+        const v = p && p.marketTotal > 0 ? p.segmentCount / p.marketTotal : null;
+        return [m, v] as const;
+      }),
+    ) as Record<Market, number | null>;
+
+    const thisData = bySegMarket.get(`${s.segmentId}::${market}`);
+    const thisBaseline = baselineByMarket[market];
+    const thisTotal = totalBySegmentId.get(s.segmentId);
+    const curPair = thisData && thisBaseline ? pickCompatibleBaselineSegment(thisBaseline, thisData) : null;
+    const marketTotal = curPair?.marketTotal ?? null;
+    const segmentCount = curPair?.segmentCount ?? null;
+    const ls =
+      marketTotal !== null && marketTotal > 0 && segmentCount !== null ? segmentCount / marketTotal : null;
+
+    const { gs } = collectGsFromCompatibleLs({
+      segmentId: s.segmentId,
+      baselineByMarket,
+      bySegMarket,
+    });
+
+    const wholePair = thisData && thisTotal ? pickCompatibleWholeVsMarket(thisTotal, thisData) : null;
+    let segmentTotal: number | null = null;
+    let sa: number | null = null;
+    if (wholePair && wholePair.totalCount > 0) {
+      segmentTotal = wholePair.totalCount;
+      sa = clamp(wholePair.marketCount / wholePair.totalCount, 0, 1);
+    }
+
+    const otherLsAvg = computeOtherMarketsLsAvg({
+      segmentId: s.segmentId,
+      excludeMarket: market,
+      baselineByMarket,
+      bySegMarket,
+    });
+    const rl = ls !== null && otherLsAvg !== null ? ls - otherLsAvg : null;
+    const scale = segmentCount !== null ? Math.log10(segmentCount + 1) : null;
+
+    let liftRatio: number | null = null;
+    let attentionScore: number | null = null;
+    if (
+      segmentCount !== null &&
+      segmentCount >= MIN_SEGMENT_COUNT_FOR_ATTENTION &&
+      ls !== null &&
+      gs !== null &&
+      gs > 0
+    ) {
+      liftRatio = ls / gs;
+      attentionScore = liftRatio * Math.log10(segmentCount);
+    }
+
+    const adParts =
+      rl !== null && sa !== null && scale !== null && ls !== null
+        ? computeAdScoreParts({ ls, rl, sa, scale })
+        : null;
+
+    return {
+      segmentId: s.segmentId,
+      segmentName: s.segmentName,
+      nSeg: segmentCount,
+      nMkt: marketTotal,
+      ls,
+      lsByMarket,
+      gs,
+      liftRatio,
+      attentionScore,
+      rl,
+      sa,
+      segmentTotal,
+      scale,
+      adScore: adParts?.adScore ?? null,
+    };
+  });
+
+  const baselineTotals = Object.fromEntries(
+    MARKETS.map((m) => {
+      const b = baselineByMarket[m];
+      const total = pickTotalPreferAge(b) ?? 0;
+      return [m, total] as const;
+    }),
+  ) as Record<Market, number>;
+
+  return {
+    market,
+    generatedAt: new Date().toISOString(),
+    baselineTotals,
+    rows,
+  };
+}

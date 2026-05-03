@@ -13,6 +13,7 @@ import { DetailSegmentPicker } from "@/components/dashboard/DetailSegmentPicker"
 import { DetailMarketPicker } from "@/components/dashboard/DetailMarketPicker";
 import { TopMarketList } from "@/components/dashboard/TopMarketList";
 import { ClearSegmentSelection } from "@/components/dashboard/ClearSegmentSelection";
+import { ExportMetricsButton } from "@/components/dashboard/ExportMetricsButton";
 
 import { getDashboardModel, getSegmentDetailModel, getSegmentMarketRanking } from "@/lib/podomedia/analyze";
 import { loadSegmentForMarket } from "@/lib/podomedia/load";
@@ -80,11 +81,14 @@ export default async function Home(props: {
               />
             )}
           </div>
-          {dashboard.segments.length > 0 ? (
-            <Badge variant="outline" className="border-white/10 text-white/80">
-              관심사 {dashboard.segments.length.toLocaleString()}개
-            </Badge>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {mode === "market" ? <ExportMetricsButton market={market} /> : null}
+            {dashboard.segments.length > 0 ? (
+              <Badge variant="outline" className="border-white/10 text-white/80">
+                관심사 {dashboard.segments.length.toLocaleString()}개
+              </Badge>
+            ) : null}
+          </div>
         </div>
 
         {mode === "market" ? (
@@ -122,22 +126,31 @@ export default async function Home(props: {
             </Card>
           ) : (
             <Card className="bg-white/5 border-white/10">
-              <CardHeader className="space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <CardHeader className="space-y-4">
                 <div className="min-w-0">
                   <CardTitle className="text-base">상권 × 세그먼트 교차 분석</CardTitle>
-                  <div className="text-xs text-white/55 pt-1">
+                  <p className="text-xs text-white/55 pt-1 leading-relaxed">
                     선택한 세그먼트를 <span className="text-white/75">{market}</span> 상권과 비교합니다. 기본 상권
-                    화면으로 돌아가려면 아래를 누르세요.
-                  </div>
+                    화면으로 돌아가려면 이 카드 안의{" "}
+                    <span className="text-white/80">「기본 상권 분석으로」</span> 버튼을 누르거나, 세그먼트를 다른
+                    값으로 바꿀 수 있어요.
+                  </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  <ClearSegmentSelection market={market} view={mode} />
-                  <DetailSegmentPicker
-                    segment={selectedSegment}
-                    segments={dashboard.segments}
-                    market={market}
-                    view={mode}
-                  />
+                <div className="flex flex-col gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-3 sm:flex-row sm:flex-wrap sm:items-center">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-white/50 whitespace-nowrap">기본 화면</span>
+                    <ClearSegmentSelection market={market} view={mode} />
+                  </div>
+                  <div className="hidden sm:block h-6 w-px bg-white/15 shrink-0" aria-hidden />
+                  <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+                    <span className="text-xs text-white/50 whitespace-nowrap">세그먼트 변경</span>
+                    <DetailSegmentPicker
+                      segment={selectedSegment}
+                      segments={dashboard.segments}
+                      market={market}
+                      view={mode}
+                    />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-5">
