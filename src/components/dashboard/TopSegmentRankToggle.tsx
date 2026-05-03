@@ -15,8 +15,8 @@ export function TopSegmentRankToggle(props: {
   market: Market;
   view: ViewMode;
   selectedSegmentId: string | null;
-  top5Attention: TopSegment[];
-  top5VisitSummary: TopSegment[];
+  rankedAttention: TopSegment[];
+  rankedVisitSummary: TopSegment[];
 }) {
   const [tab, setTab] = React.useState<"attention" | "visit">("attention");
 
@@ -34,7 +34,7 @@ export function TopSegmentRankToggle(props: {
                 : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
             )}
           >
-            주목 세그먼트 TOP 5
+            주목 세그먼트 (전체 순위)
           </button>
           <button
             type="button"
@@ -46,7 +46,7 @@ export function TopSegmentRankToggle(props: {
                 : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
             )}
           >
-            방문 종합 세그먼트 TOP 5
+            방문 종합 세그먼트 (전체 순위)
           </button>
         </div>
         <div className="text-xs text-white/60 max-w-xl sm:text-right">
@@ -56,7 +56,7 @@ export function TopSegmentRankToggle(props: {
 
       <TopRankRows
         listKind={tab}
-        items={tab === "attention" ? props.top5Attention : props.top5VisitSummary}
+        items={tab === "attention" ? props.rankedAttention : props.rankedVisitSummary}
         selectedSegmentId={props.selectedSegmentId}
         market={props.market}
         view={props.view}

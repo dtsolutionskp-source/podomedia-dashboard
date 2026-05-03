@@ -33,8 +33,8 @@ export function MarketTabs(props: { value: Market }) {
       <Link href={href("명동")} className={tabClass("명동")}>
         명동
       </Link>
-      <Link href={href("노량진")} className={tabClass("노량진")}>
-        노량진
+      <Link href={href("여의도")} className={tabClass("여의도")}>
+        여의도
       </Link>
     </nav>
   );

@@ -1,4 +1,4 @@
-export const MARKETS = ["코엑스", "명동", "노량진"] as const;
+export const MARKETS = ["코엑스", "명동", "여의도"] as const;
 export type Market = (typeof MARKETS)[number];
 
 export const DIMENSIONS = ["성별", "연령"] as const;

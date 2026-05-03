@@ -4,8 +4,8 @@ import chardet from "chardet";
 import iconv from "iconv-lite";
 import Papa from "papaparse";
 
-const DATA_ROOT = process.env.PODOMEDIA_DATA_ROOT?.trim() || "D:\\2026\\포도미디어";
-const MARKETS = ["코엑스", "명동", "노량진"];
+const DATA_ROOT = process.env.PODOMEDIA_DATA_ROOT?.trim() || path.join(process.cwd(), "data");
+const MARKETS = ["코엑스", "명동", "여의도"];
 
 function expectedFileName(market, dim) {
   return `${market}_${dim}.csv`;

@@ -749,12 +749,11 @@ export async function getDashboardModel(market: Market, selectedSegmentId: strin
     return a.segmentId.localeCompare(b.segmentId);
   };
 
-  const top5Attention = scoresWithSignals.filter((x) => x.attentionScore !== null).sort(byAttention).slice(0, 5);
+  /** 주목(Attention) 점수 순 — 전체 세그(상기 필터 통과분) */
+  const rankedAttention = scoresWithSignals.filter((x) => x.attentionScore !== null).sort(byAttention);
 
-  const top5VisitSummary = scoresWithSignals
-    .filter((x) => x.adScore !== null)
-    .sort(byVisitAd)
-    .slice(0, 5);
+  /** 방문 종합(Ad score) 순 — 전체 세그(점수 계산 가능분) */
+  const rankedVisitSummary = scoresWithSignals.filter((x) => x.adScore !== null).sort(byVisitAd);
 
   const baselineTotalsByMarket = Object.fromEntries(
     MARKETS.map((m) => {
@@ -783,8 +782,8 @@ export async function getDashboardModel(market: Market, selectedSegmentId: strin
     baselineTotalsByMarket,
     selectedMarketTotal: selectedTotal,
     selectedMarketSharePct: selectedSharePct,
-    top5Attention,
-    top5VisitSummary,
+    rankedAttention,
+    rankedVisitSummary,
     allScores: scoresWithSignals,
     marketInsightNarrative,
   };

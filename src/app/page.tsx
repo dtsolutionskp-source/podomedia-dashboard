@@ -22,6 +22,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function asMarket(v: string | null): Market {
+  if (v === "노량진") return "여의도";
   if (v && (MARKETS as readonly string[]).includes(v)) return v as Market;
   return "코엑스";
 }
@@ -213,8 +214,8 @@ export default async function Home(props: {
             market={market}
             view={mode}
             selectedSegmentId={selectedSegment}
-            top5Attention={dashboard.top5Attention}
-            top5VisitSummary={dashboard.top5VisitSummary}
+            rankedAttention={dashboard.rankedAttention}
+            rankedVisitSummary={dashboard.rankedVisitSummary}
           />
         ) : null}
 
@@ -228,7 +229,7 @@ export default async function Home(props: {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="text-sm text-white/70">
                     {mode === "market"
-                      ? "TOP5를 누르지 않아도, 오른쪽 드롭박스에서 세그먼트를 선택해 교차 분석을 시작할 수 있습니다."
+                      ? "위 세그먼트 목록에서 선택하거나, 오른쪽 드롭박스에서 세그먼트를 골라 교차 분석을 시작할 수 있습니다."
                       : "상권 카드를 누르거나, 오른쪽에서 상권을 바꿔 가며 상권 인사이트를 비교할 수 있습니다."}
                   </div>
                   {mode === "market" ? (
