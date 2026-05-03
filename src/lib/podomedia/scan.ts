@@ -4,6 +4,11 @@ import path from "node:path";
 
 import { DIMENSIONS, MARKETS, type Dimension, type Market } from "./types";
 
+/** CSV 파일명 접두어. 레거시 데이터가 `노량진_*`인 경우 UI 상권명만 여의도로 둡니다. */
+export function marketCsvStem(market: Market): string {
+  return market === "여의도" ? "노량진" : market;
+}
+
 export type DataRootScan = {
   dataRoot: string;
   baselineDir: string | null;
@@ -53,7 +58,8 @@ export async function scanDataRoot(dataRoot = getDataRoot()): Promise<DataRootSc
 }
 
 export function expectedFileName(market: Market | "전체", dim: Dimension): string {
-  return `${market}_${dim}.csv`;
+  const stem = market === "전체" ? "전체" : marketCsvStem(market);
+  return `${stem}_${dim}.csv`;
 }
 
 export function listExpectedFilesForSegment(): string[] {

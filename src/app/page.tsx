@@ -179,6 +179,13 @@ export default async function Home(props: {
                     </CardContent>
                   </Card>
                 </div>
+
+                <SummaryInsightsPanel
+                  embedded
+                  marketLabel={market}
+                  narrative={dashboard.marketInsightNarrative}
+                  detail={detail}
+                />
               </CardContent>
             </Card>
           )
@@ -283,11 +290,10 @@ export default async function Home(props: {
           />
         ) : null}
 
+        {!(mode === "market" && detail) ? (
         <Card className="bg-white/5 border-white/10">
           <CardHeader>
-            <CardTitle className="text-base">
-              {mode === "market" && detail ? "하단 인사이트" : "하단 상세 분석 (전체폭)"}
-            </CardTitle>
+            <CardTitle className="text-base">하단 상세 분석 (전체폭)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             {!detail ? (
@@ -315,12 +321,6 @@ export default async function Home(props: {
                   detail={null}
                 />
               </div>
-            ) : mode === "market" ? (
-              <SummaryInsightsPanel
-                marketLabel={market}
-                narrative={dashboard.marketInsightNarrative}
-                detail={detail}
-              />
             ) : (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -378,6 +378,7 @@ export default async function Home(props: {
             )}
           </CardContent>
         </Card>
+        ) : null}
       </main>
     </div>
   );

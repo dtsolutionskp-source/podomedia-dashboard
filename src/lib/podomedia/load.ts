@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import { loadAgeCsv, loadGenderCsv } from "./csv";
-import { getDataRoot, scanDataRoot, expectedFileName } from "./scan";
+import { getDataRoot, scanDataRoot, expectedFileName, marketCsvStem } from "./scan";
 import type {
   BaselineMarketData,
   Market,
@@ -26,12 +26,19 @@ async function resolveFilePath(opts: {
   const expected = path.join(opts.dir, expectedFileName(opts.market, opts.dim));
   if (await fileExists(expected)) return { path: expected, usedFallback: false };
 
+  // 표시명 여의도인데 파일만 여의도_* 로 바꾼 배포 대비(선택)
+  if (opts.market === "여의도") {
+    const displayStem = path.join(opts.dir, `여의도_${opts.dim}.csv`);
+    if (await fileExists(displayStem)) return { path: displayStem, usedFallback: true };
+  }
+
   // 실데이터에서 자주 발생하는 파일명 오타/변형을 허용
   // 예: "명동_셩별.csv" (성별 오타)
   if (opts.dim === "성별") {
+    const stem = opts.market === "전체" ? "전체" : marketCsvStem(opts.market);
     const fallbackNames = [
-      `${opts.market}_셩별.csv`,
-      `${opts.market}_성별 .csv`, // trailing space case (rare)
+      `${stem}_셩별.csv`,
+      `${stem}_성별 .csv`, // trailing space case (rare)
     ];
     for (const n of fallbackNames) {
       const p = path.join(opts.dir, n);

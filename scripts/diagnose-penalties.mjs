@@ -7,8 +7,13 @@ import Papa from "papaparse";
 const DATA_ROOT = process.env.PODOMEDIA_DATA_ROOT?.trim() || path.join(process.cwd(), "data");
 const MARKETS = ["코엑스", "명동", "여의도"];
 
+function marketCsvStem(m) {
+  return m === "여의도" ? "노량진" : m;
+}
+
 function expectedFileName(market, dim) {
-  return `${market}_${dim}.csv`;
+  const stem = market === "전체" ? "전체" : marketCsvStem(market);
+  return `${stem}_${dim}.csv`;
 }
 
 async function fileExists(p) {
