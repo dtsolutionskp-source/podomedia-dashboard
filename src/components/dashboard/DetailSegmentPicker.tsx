@@ -27,7 +27,7 @@ export function DetailSegmentPicker(props: {
   return (
     <Combobox
       value={props.segment}
-      placeholder="TOP5 외 세그먼트 비교"
+      placeholder="세그먼트 검색·변경"
       options={options}
       onChange={(v) => {
         const next = buildDashboardSearchParams({

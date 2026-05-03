@@ -34,7 +34,7 @@ export function TopSegmentRankToggle(props: {
                 : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
             )}
           >
-            주목 세그먼트 (전체 순위)
+            주목 세그먼트
           </button>
           <button
             type="button"
@@ -46,7 +46,7 @@ export function TopSegmentRankToggle(props: {
                 : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10",
             )}
           >
-            방문 종합 세그먼트 (전체 순위)
+            방문 종합 세그먼트
           </button>
         </div>
         <div className="text-xs text-white/60 max-w-xl sm:text-right">

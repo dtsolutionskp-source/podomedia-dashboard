@@ -12,6 +12,7 @@ import { GenderPieCompare } from "@/components/dashboard/GenderPie";
 import { DetailSegmentPicker } from "@/components/dashboard/DetailSegmentPicker";
 import { DetailMarketPicker } from "@/components/dashboard/DetailMarketPicker";
 import { TopMarketList } from "@/components/dashboard/TopMarketList";
+import { ClearSegmentSelection } from "@/components/dashboard/ClearSegmentSelection";
 
 import { getDashboardModel, getSegmentDetailModel, getSegmentMarketRanking } from "@/lib/podomedia/analyze";
 import { loadSegmentForMarket } from "@/lib/podomedia/load";
@@ -87,37 +88,100 @@ export default async function Home(props: {
         </div>
 
         {mode === "market" ? (
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-base">상권 기본 분석</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 lg:grid-cols-12">
-              <div className="lg:col-span-3 space-y-3">
-                <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-                  <div className="text-xs text-white/60">상권 규모(3개 상권 합 대비)</div>
-                  <div className="mt-1 text-lg font-semibold text-white">
-                    {dashboard.selectedMarketSharePct === null
-                      ? "—"
-                      : `${dashboard.selectedMarketSharePct.toFixed(1)}%`}
+          !detail ? (
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-base">상권 기본 분석</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4 lg:grid-cols-12">
+                <div className="lg:col-span-3 space-y-3">
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                    <div className="text-xs text-white/60">상권 규모(3개 상권 합 대비)</div>
+                    <div className="mt-1 text-lg font-semibold text-white">
+                      {dashboard.selectedMarketSharePct === null
+                        ? "—"
+                        : `${dashboard.selectedMarketSharePct.toFixed(1)}%`}
+                    </div>
+                    <div className="mt-1 text-xs text-white/60">
+                      기준: 상권 정보 파일의 총 모수(연령 합 우선, 없으면 성별 합)
+                    </div>
                   </div>
-                  <div className="mt-1 text-xs text-white/60">
-                    기준: 상권 정보 파일의 총 모수(연령 합 우선, 없으면 성별 합)
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-3">
+                    <div className="text-xs text-white/60">성별(원형)</div>
+                    <div className="mt-2">
+                      <GenderPieCompare baseline={dashboard.baseline.gender} />
+                    </div>
                   </div>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-                  <div className="text-xs text-white/60">성별(원형)</div>
-                  <div className="mt-2">
-                    <GenderPieCompare baseline={dashboard.baseline.gender} />
-                  </div>
-                </div>
-              </div>
 
-              <div className="lg:col-span-9 rounded-lg border border-white/10 bg-white/5 p-3">
-                <div className="text-xs text-white/60 mb-2">연령 분포(전체폭)</div>
-                <AgeLineCompareChart baseline={dashboard.baseline.age} />
-              </div>
-            </CardContent>
-          </Card>
+                <div className="lg:col-span-9 rounded-lg border border-white/10 bg-white/5 p-3">
+                  <div className="text-xs text-white/60 mb-2">연령 분포(전체폭)</div>
+                  <AgeLineCompareChart baseline={dashboard.baseline.age} />
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader className="space-y-3 sm:space-y-0 sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div className="min-w-0">
+                  <CardTitle className="text-base">상권 × 세그먼트 교차 분석</CardTitle>
+                  <div className="text-xs text-white/55 pt-1">
+                    선택한 세그먼트를 <span className="text-white/75">{market}</span> 상권과 비교합니다. 기본 상권
+                    화면으로 돌아가려면 아래를 누르세요.
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <ClearSegmentSelection market={market} view={mode} />
+                  <DetailSegmentPicker
+                    segment={selectedSegment}
+                    segments={dashboard.segments}
+                    market={market}
+                    view={mode}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-lg font-semibold text-white">
+                      {market} · {detail.segmentName}
+                    </div>
+                    <div className="mt-1 text-sm text-white/70">{detail.headline}</div>
+                  </div>
+                  <DetailAdMetricBadges
+                    market={market}
+                    segmentName={detail.segmentName}
+                    ls={detail.ls}
+                    rl={detail.rl}
+                    sa={detail.sa}
+                    segmentCount={detail.segmentCount}
+                  />
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-12">
+                  <div className="lg:col-span-4 space-y-4">
+                    <Card className="bg-white/5 border-white/10">
+                      <CardHeader>
+                        <CardTitle className="text-sm">인사이트: 성별 비교</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <GenderPieCompare baseline={detail.baseline.gender} segment={detail.segMarket.gender} />
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="bg-white/5 border-white/10 lg:col-span-8">
+                    <CardHeader>
+                      <CardTitle className="text-sm">인사이트: 연령 비교 (상권 정보 vs 세그먼트)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <AgeLineCompareChart baseline={detail.baseline.age} segment={detail.segMarket.age} />
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          )
         ) : (
           <div className="space-y-6">
             <Card className="bg-white/5 border-white/10">
@@ -221,7 +285,9 @@ export default async function Home(props: {
 
         <Card className="bg-white/5 border-white/10">
           <CardHeader>
-            <CardTitle className="text-base">하단 상세 분석 (전체폭)</CardTitle>
+            <CardTitle className="text-base">
+              {mode === "market" && detail ? "하단 인사이트" : "하단 상세 분석 (전체폭)"}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             {!detail ? (
@@ -248,8 +314,13 @@ export default async function Home(props: {
                   narrative={dashboard.marketInsightNarrative}
                   detail={null}
                 />
-
               </div>
+            ) : mode === "market" ? (
+              <SummaryInsightsPanel
+                marketLabel={market}
+                narrative={dashboard.marketInsightNarrative}
+                detail={detail}
+              />
             ) : (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -270,25 +341,13 @@ export default async function Home(props: {
                       sa={detail.sa}
                       segmentCount={detail.segmentCount}
                     />
-                    {mode === "market" ? (
-                      <div className="ml-2">
-                        <DetailSegmentPicker
-                          segment={selectedSegment}
-                          segments={dashboard.segments}
-                          market={market}
-                          view={mode}
-                        />
-                      </div>
-                    ) : (
-                      <div className="ml-2">
-                        <DetailMarketPicker market={market} segment={selectedSegment} />
-                      </div>
-                    )}
+                    <div className="ml-2">
+                      <DetailMarketPicker market={market} segment={selectedSegment} />
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-12">
-                  {/* 왼쪽: 인사이트(성별) */}
                   <div className="lg:col-span-4 space-y-4">
                     <Card className="bg-white/5 border-white/10">
                       <CardHeader>
@@ -300,7 +359,6 @@ export default async function Home(props: {
                     </Card>
                   </div>
 
-                  {/* 오른쪽: 연령 전체폭 */}
                   <Card className="bg-white/5 border-white/10 lg:col-span-8">
                     <CardHeader>
                       <CardTitle className="text-sm">인사이트: 연령 비교 (상권 정보 vs 세그먼트)</CardTitle>
@@ -316,7 +374,6 @@ export default async function Home(props: {
                   narrative={dashboard.marketInsightNarrative}
                   detail={detail}
                 />
-
               </>
             )}
           </CardContent>
